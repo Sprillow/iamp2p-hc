@@ -3,8 +3,8 @@
   "uuid": "",
   "properties": null,
   "zomes": {
-    "acorn_projects": {
-      "wasm_path": "../../../target/wasm32-unknown-unknown/release/acorn_projects.wasm"
+    "iamp2p_projects": {
+      "wasm_path": "../../../target/wasm32-unknown-unknown/release/iamp2p_projects.wasm"
     }
   }
 }

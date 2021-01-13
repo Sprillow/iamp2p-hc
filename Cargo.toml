@@ -1,8 +1,8 @@
 [workspace]
 members = [
   "crates/dna_help",
-  "dnas/profiles/zomes/acorn_profiles",
-  "dnas/projects/zomes/acorn_projects",
+  "dnas/profiles/zomes/iamp2p_profiles",
+  "dnas/projects/zomes/iamp2p_projects",
 ]
 
 [profile.dev]

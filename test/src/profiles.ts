@@ -14,7 +14,7 @@ module.exports = (orchestrator) => {
     const [profilesCell] = profileHapp.cells
     // fetch_agent_address
     const agent_address = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'fetch_agent_address',
     )
 
@@ -27,13 +27,13 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     const create_whoami = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'create_whoami',
       profile
     )
 
     const fetchAgentsResult = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'fetch_agents',
       )
 
@@ -49,7 +49,7 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     const update_whoami = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'update_whoami',
       {
         entry: profile2,
@@ -62,7 +62,7 @@ module.exports = (orchestrator) => {
 
     // WHOAMI
     const whoami2 = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'whoami',
     )
     t.deepEqual(whoami2.entry, {
@@ -80,7 +80,7 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'update_whoami',
       {
         entry: profile3,
@@ -89,7 +89,7 @@ module.exports = (orchestrator) => {
     )
     await delay(2000)
     const whoami3 = await profilesCell.call(
-      'acorn_profiles',
+      'iamp2p_profiles',
       'whoami',
     )
     t.deepEqual(whoami3.entry, profile3)

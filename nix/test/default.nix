@@ -1,9 +1,9 @@
 { pkgs }:
 let
-  script = pkgs.writeShellScriptBin "acorn-test"
+  script = pkgs.writeShellScriptBin "iamp2p-test"
   ''
   set -euxo pipefail
-  acorn-package
+  iamp2p-package
   cd test
   npm run test
   '';

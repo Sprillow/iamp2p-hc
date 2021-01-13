@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-Compressed the WASM size, and it shrunk from 50mb to 2mb! Speed of acorn-hc responses went up about 10x
+Compressed the WASM size, and it shrunk from 50mb to 2mb! Speed of iamp2p-hc responses went up about 10x
 
 ### Deprecated
 

@@ -92,7 +92,7 @@ See:
    owner = "h-be";
 
    # repository name on github that release are deployed to
-   repo = "acorn-hc";
+   repo = "iamp2p-hc";
 
    # canonical local upstream name as per `git remote -v`
    upstream = "origin";

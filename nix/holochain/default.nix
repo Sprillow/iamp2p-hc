@@ -1,19 +1,19 @@
 { pkgs }:
 let
-  acorn-hc = pkgs.writeShellScriptBin "acorn-hc"
+  iamp2p-hc = pkgs.writeShellScriptBin "iamp2p-hc"
   ''
   set -euxo pipefail
-  acorn-package
+  iamp2p-package
   npm run start
   '';
 
-  acorn-fmt = pkgs.writeShellScriptBin "acorn-fmt"
+  iamp2p-fmt = pkgs.writeShellScriptBin "iamp2p-fmt"
   ''
   set -euxo pipefail
   cargo fmt
   '';
 
-  acorn-package = pkgs.writeShellScriptBin "acorn-package"
+  iamp2p-package = pkgs.writeShellScriptBin "iamp2p-package"
   ''
   set -euxo pipefail
   cargo build --release --target wasm32-unknown-unknown
@@ -23,5 +23,5 @@ let
   '';
 in
 {
- buildInputs = [ acorn-hc acorn-fmt acorn-package];
+ buildInputs = [ iamp2p-hc iamp2p-fmt iamp2p-package];
 }

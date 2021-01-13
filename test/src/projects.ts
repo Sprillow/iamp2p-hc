@@ -4,7 +4,7 @@ import * as _ from 'lodash'
 import path from 'path'
 import { delay } from './timer'
 
-const ZOME = 'acorn_projects'
+const ZOME = 'iamp2p_projects'
 const config = Config.gen()
 const projectsDnaPath = path.join(
   __dirname,
