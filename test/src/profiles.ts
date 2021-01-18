@@ -5,7 +5,7 @@ import path from 'path'
 import { delay } from './timer'
 
 const config = Config.gen()
-const profilesDnaPath = path.join(__dirname, '../../dnas/profiles/profiles.dna.gz')
+const profilesDnaPath = path.join(__dirname, '../../dnas/projects/projects.dna.gz')
 
 module.exports = (orchestrator) => {
   orchestrator.registerScenario('profiles test', async (s: ScenarioApi, t) => {
@@ -14,7 +14,7 @@ module.exports = (orchestrator) => {
     const [profilesCell] = profileHapp.cells
     // fetch_agent_address
     const agent_address = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'fetch_agent_address',
     )
 
@@ -27,13 +27,13 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     const create_whoami = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'create_whoami',
       profile
     )
 
     const fetchAgentsResult = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'fetch_agents',
       )
 
@@ -49,7 +49,7 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     const update_whoami = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'update_whoami',
       {
         entry: profile2,
@@ -62,7 +62,7 @@ module.exports = (orchestrator) => {
 
     // WHOAMI
     const whoami2 = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'whoami',
     )
     t.deepEqual(whoami2.entry, {
@@ -80,7 +80,7 @@ module.exports = (orchestrator) => {
       address: agent_address,
     }
     await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'update_whoami',
       {
         entry: profile3,
@@ -89,7 +89,7 @@ module.exports = (orchestrator) => {
     )
     await delay(2000)
     const whoami3 = await profilesCell.call(
-      'iamp2p_profiles',
+      'iamp2p_projects',
       'whoami',
     )
     t.deepEqual(whoami3.entry, profile3)

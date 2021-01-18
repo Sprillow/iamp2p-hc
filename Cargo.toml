@@ -1,7 +1,6 @@
 [workspace]
 members = [
   "crates/dna_help",
-  "dnas/profiles/zomes/iamp2p_profiles",
   "dnas/projects/zomes/iamp2p_projects",
 ]
 

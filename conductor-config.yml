@@ -19,4 +19,4 @@ network:
           type: quic
         proxy_config:
           type: remote_proxy_client
-          proxy_url: kitsune-proxy://TnOWFB1cWSDKFtCHB5K6UTbpNYpaUSDZKCKDvim-tDc/kitsune-quic/h/10.0.0.141/p/61697/--
+          proxy_url: kitsune-proxy://pPKWR5ta3CK7tvRAf7fkMoBUCjatyFPKBnuXFKsiT84/kitsune-quic/h/10.0.0.141/p/53214/--

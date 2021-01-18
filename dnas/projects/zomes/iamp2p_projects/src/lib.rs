@@ -13,6 +13,7 @@ use project::{
     goal_member::{GoalMember, GoalMemberSignal},
     goal_vote::{GoalVote, GoalVoteSignal},
     member::{Member, MemberSignal, MEMBER_PATH},
+    profile::{Profile, AgentSignal, AGENTS_PATH},
     project_meta::{ProjectMeta, ProjectMetaSignal},
 };
 
@@ -24,6 +25,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
     // not the issue, takes about 2 ms
     create_receive_signal_cap_grant()?;
 
+    Path::from(AGENTS_PATH).ensure()?;
     Path::from(MEMBER_PATH).ensure()?;
 
     // while joining, list me in the list of members
@@ -54,7 +56,8 @@ entry_defs!(
     GoalMember::entry_def(),
     GoalVote::entry_def(),
     Member::entry_def(),
-    ProjectMeta::entry_def()
+    ProjectMeta::entry_def(),
+    Profile::entry_def()
 );
 
 /*
@@ -65,6 +68,7 @@ SIGNALS
 // untagged because the useful tagging is done internally on the *Signal objects
 #[serde(untagged)]
 pub enum SignalType {
+    Agent(AgentSignal),
     Edge(EdgeSignal),
     EntryPoint(EntryPointSignal),
     Goal(GoalSignal),

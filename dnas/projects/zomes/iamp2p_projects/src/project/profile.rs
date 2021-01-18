@@ -102,15 +102,6 @@ impl<'de> Deserialize<'de> for Status {
     }
 }
 
-// #[hdk_extern]
-// fn validate(_: Entry) -> ExternResult<ValidateCallbackResult> {
-//     // HOLD
-//     // have to hold on this until we get more than entry in the validation callback
-//     // which will come soon, according to David M.
-//     let _ = debug!(("in validation callback");
-//     Ok(ValidateCallbackResult::Valid)
-// }
-
 #[hdk_extern]
 pub fn create_whoami(entry: Profile) -> ExternResult<WireEntry> {
     // commit this new profile
@@ -229,84 +220,3 @@ pub struct AgentSignal {
     pub action: ActionType,
     pub data: SignalData,
 }
-
-// receiver (and forward to UI)
-#[hdk_extern]
-pub fn recv_remote_signal(sb: SerializedBytes) -> ExternResult<()> {
-    let signal: AgentSignal = AgentSignal::try_from(sb)?;
-    Ok(emit_signal(&signal)?)
-}
-
-// pub fn profile_def() -> ValidatingEntryType {
-//     entry!(
-//         name: "profile",
-//         description: "this is an entry representing some profile info for an agent",
-//         sharing: Sharing::Public,
-//         validation_package: || {
-//             hdk::ValidationPackageDefinition::Entry
-//         },
-//         validation: | validation_data: hdk::EntryValidationData<Profile>| {
-//             match validation_data{
-//                 hdk::EntryValidationData::Create{entry,validation_data}=>{
-//                     let agent_address = &validation_data.sources()[0];
-//                     if entry.address!=agent_address.to_string() {
-//                         Err("only the same agent as the profile is about can create their profile".into())
-//                     }else {Ok(())}
-//                 },
-//                 hdk::EntryValidationData::Modify{
-//                     new_entry,
-//                     old_entry,validation_data,..}=>{
-//                     let agent_address = &validation_data.sources()[0];
-//                     if new_entry.address!=agent_address.to_string()&& old_entry.address!=agent_address.to_string(){
-//                         Err("only the same agent as the profile is about can modify their profile".into())
-//                     }else {Ok(())}
-//                 },
-//                 hdk::EntryValidationData::Delete{old_entry,validation_data,..}=>{
-//                     let agent_address = &validation_data.sources()[0];
-//                     if old_entry.address!=agent_address.to_string() {
-//                         Err("only the same agent as the profile is about can delete their profile".into())
-//                     }else {Ok(())}
-//                 }
-//             }
-//         },
-//         links: [
-//             from!(
-//                 "%agent_id",
-//                 link_type: "agent->profile",
-//                 validation_package: || {
-//                     hdk::ValidationPackageDefinition::Entry
-//                 },
-//                validation: |link_validation_data: hdk::LinkValidationData| {
-//                     let validation_data =
-//                         match link_validation_data {
-//                             hdk::LinkValidationData::LinkAdd {
-//                                 validation_data,..
-//                             } => validation_data,
-//                             hdk::LinkValidationData::LinkRemove {
-//                                 validation_data,..
-//                             } =>validation_data,
-//                         };
-//                     let agent_address=&validation_data.sources()[0];
-//                     if let Some(vector)= validation_data.package.source_chain_entries{
-//                         if let App (_,entry)=&vector[0]{
-//                         if let Ok(profile)=serde_json::from_str::<Profile>(&Into::<String>::into(entry)) {
-//                             if profile.address==agent_address.to_string(){
-//                             Ok(())
-
-//                             }else {
-//                         Err("Cannot edit other people's Profile1".to_string())}
-//                         }else {
-//                         Err("Cannot edit other people's Profile2".to_string())}
-//                     }
-//                     else{
-//                         Err("Cannot edit other people's Profile3".to_string())
-//                     }
-
-//                     } else{
-//                         Ok(())
-//                     }
-//                     }
-//             )
-//         ]
-//     )
-// }

@@ -236,16 +236,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "iamp2p_profiles"
-version = "0.4.0"
-dependencies = [
- "derive_more",
- "dna_help",
- "hdk3",
- "serde",
-]
-
-[[package]]
 name = "iamp2p_projects"
 version = "0.4.0"
 dependencies = [
