@@ -1,0 +1,22 @@
+---
+environment_path: ./storage
+use_dangerous_test_keystore: false
+signing_service_uri: ~
+encryption_service_uri: ~
+decryption_service_uri: ~
+dpki: ~
+keystore_path: ~
+passphrase_service: ~
+admin_interfaces:
+  - driver:
+      type: websocket
+      port: 1234
+network:
+    bootstrap_service: https://bootstrap.holo.host
+    transport_pool:
+      - type: proxy
+        sub_transport:
+          type: quic
+        proxy_config:
+          type: remote_proxy_client
+          proxy_url: kitsune-proxy://TnOWFB1cWSDKFtCHB5K6UTbpNYpaUSDZKCKDvim-tDc/kitsune-quic/h/10.0.0.141/p/61697/--
