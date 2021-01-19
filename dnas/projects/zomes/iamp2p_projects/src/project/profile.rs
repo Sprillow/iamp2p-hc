@@ -4,17 +4,17 @@ use dna_help::{
 };
 use hdk3::prelude::*;
 
+use crate::get_peers_latest;
+
 pub const AGENTS_PATH: &str = "agents";
 
 #[hdk_entry(id = "profile")]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Profile {
-    first_name: String,
-    last_name: String,
+    created_at: f64,
     handle: String,
-    status: Status,
     avatar_url: String,
-    address: WrappedAgentPubKey,
+    pub address: WrappedAgentPubKey,
 }
 
 impl From<Profile> for AgentPubKey {
@@ -162,7 +162,10 @@ pub fn whoami(_: ()) -> ExternResult<WhoAmIOutput> {
     // // do it this way so that we always keep the original profile entry address
     // // from the UI perspective
     match maybe_profile_link {
-        Some(profile_link) => match get_latest_for_entry::<Profile>(profile_link.target.clone(), GetOptions::content())? {
+        Some(profile_link) => match get_latest_for_entry::<Profile>(
+            profile_link.target.clone(),
+            GetOptions::content(),
+        )? {
             Some(entry_and_hash) => Ok(WhoAmIOutput(Some(WireEntry::from(entry_and_hash)))),
             None => Ok(WhoAmIOutput(None)),
         },
@@ -188,20 +191,7 @@ SIGNALS
 */
 
 fn send_agent_signal(signal: AgentSignal) -> ExternResult<()> {
-    signal_peers(&signal, get_peers)
-}
-
-// used to get addresses of agents to send signals to
-fn get_peers() -> ExternResult<Vec<AgentPubKey>> {
-    let path_hash = Path::from(AGENTS_PATH).hash()?;
-    let entries = fetch_links::<Profile, Profile>(path_hash, GetOptions::latest())?;
-    let agent_info = agent_info()?;
-    Ok(entries
-        .into_iter()
-        // eliminate yourself as a peer
-        .filter(|x| x.address.0 != agent_info.agent_initial_pubkey)
-        .map(|x| AgentPubKey::from(x))
-        .collect::<Vec<AgentPubKey>>())
+    signal_peers(&signal, get_peers_latest)
 }
 
 // this will be used to send these data structures as signals to the UI
@@ -210,7 +200,6 @@ fn get_peers() -> ExternResult<Vec<AgentPubKey>> {
 pub enum SignalData {
     Create(WireEntry),
     Update(WireEntry),
-    Delete(WrappedHeaderHash),
 }
 
 // this will be used to send these data structures as signals to the UI

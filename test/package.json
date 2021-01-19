@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@holo-host/cryptolib": "github:Holo-Host/cryptolib-js#update-digest-for-rsm/2020-12-14",
     "@holochain/tryorama": "0.4.0-dev.2",
     "lodash": "^4.17.19",
     "tape": "^5.0.1",

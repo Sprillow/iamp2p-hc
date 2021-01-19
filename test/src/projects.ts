@@ -12,21 +12,6 @@ const projectsDnaPath = path.join(
 )
 type Hash = Buffer
 
-function newGoal(agentAddress: Hash, content: string) {
-  return {
-    content,
-    description: 'Test Goal Description',
-    user_hash: agentAddress,
-    user_edit_hash: null,
-    timestamp_created: Date.now(),
-    timestamp_updated: null,
-    hierarchy: 'Root',
-    status: 'Uncertain',
-    tags: null,
-    time_frame: null,
-  }
-}
-
 async function setup(scenario: ScenarioApi) {
   const [conductor] = await scenario.players([config])
   const [
@@ -47,19 +32,14 @@ async function setup(scenario: ScenarioApi) {
   return { callAlice, agentAddress: agent }
 }
 
-async function runPlainCrudTest({
+async function runPlainCreateFetchTest({
   entryType,
   createEntry,
-  updateEntry,
-  baseEntry,
   callAlice,
   tape,
 }) {
   // CREATE
-  const entry = {
-    ...baseEntry,
-    ...createEntry,
-  }
+  const entry = createEntry
   const createResult = await callAlice(`create_${entryType}`, entry)
   tape.deepEqual(createResult.entry, entry)
 
@@ -67,324 +47,24 @@ async function runPlainCrudTest({
   const fetchResult = await callAlice(`fetch_${entryType}s`, null)
   tape.equal(fetchResult.length, 1)
   tape.deepEqual(fetchResult[0], createResult)
-
-  // UDPATE
-  const entryUpdate = {
-    ...baseEntry,
-    ...updateEntry,
-  }
-  const updateResult = await callAlice(`update_${entryType}`, {
-    entry: entryUpdate,
-    address: createResult.address,
-  })
-  // the address should stay continuous from the original creation
-  // of the entry
-  tape.deepEqual(updateResult.address, createResult.address)
-  tape.deepEqual(updateResult.entry, entryUpdate)
-
-  // ARCHIVE / DELETE
-  const archiveResult = await callAlice(
-    `archive_${entryType}`,
-    createResult.address
-  )
-  tape.deepEqual(archiveResult, createResult.address)
 }
 
 module.exports = (orchestrator: Orchestrator<null>) => {
   orchestrator.registerScenario(
-    'member api',
+    'trx api',
     async (scenario: ScenarioApi, tape) => {
       const { callAlice, agentAddress } = await setup(scenario)
 
-      const result = await callAlice('fetch_members')
+      const { Codec } = await import('@holo-host/cryptolib')
+      const aa = Codec.AgentId.encode(agentAddress)
 
-      const sampleResult =
-        'uhCAkmrkoAHPVf_eufG7eC5fm6QKrW5pPMoktvG5LOC0SnJ4vV1Uv'
-      tape.equal(1, result.length)
-      tape.ok(result[0].address)
-      tape.equal(result[0].address.length, sampleResult.length)
-    }
-  )
-
-  orchestrator.registerScenario(
-    'goal api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-
-      // destructure
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      // CREATE
-      const goal = newGoal(agentAddress, 'Test Goal Content')
-      const createGoalResult = await callAlice('create_goal', goal)
-      tape.deepEqual(createGoalResult.entry, goal)
-
-      // READ
-      const fetchGoalsResult = await callAlice('fetch_goals')
-      tape.equal(fetchGoalsResult.length, 1)
-      tape.deepEqual(fetchGoalsResult[0], createGoalResult)
-
-      // UDPATE
-      const updatedGoal = newGoal(agentAddress, 'Updated Goal Content')
-      const updateGoalResult = await callAlice('update_goal', {
-        entry: updatedGoal,
-        address: createGoalResult.address,
-      })
-      // the address should stay continuous from the original creation
-      // of the goal
-      tape.deepEqual(updateGoalResult.address, createGoalResult.address)
-      tape.deepEqual(updateGoalResult.entry, updatedGoal)
-
-      const fetchGoals2Result = await callAlice('fetch_goals')
-      tape.equal(fetchGoals2Result.length, 1)
-      // the address should stay continuous from the original creation
-      // of the goal, but the entry/goal itself should contain the updated
-      // values
-      tape.deepEqual(fetchGoals2Result[0], updateGoalResult)
-
-      // ARCHIVE / DELETE
-      const archiveGoalResult = await callAlice(
-        'archive_goal',
-        createGoalResult.address
-      )
-      tape.deepEqual(archiveGoalResult, createGoalResult.address)
-
-      const fetchGoals3Result = await callAlice('fetch_goals')
-      tape.equal(fetchGoals3Result.length, 0)
-
-      // CREATE GOAL WITH EDGE
-      const createGoalWithNoEdgeInput = {
-        entry: newGoal(agentAddress, 'Test Goal With No Edge'),
-        maybe_parent_address: null,
-      }
-      const createGoalWithNoEdgeResult = await callAlice(
-        'create_goal_with_edge',
-        createGoalWithNoEdgeInput
-      )
-      tape.deepEqual(
-        createGoalWithNoEdgeResult.goal.entry,
-        createGoalWithNoEdgeInput.entry
-      )
-      tape.equal(createGoalWithNoEdgeResult.maybe_edge, null)
-
-      // CREATE GOAL WITH EDGE
-      const createGoalWithEdgeInput = {
-        entry: newGoal(agentAddress, 'Test Goal With Edge'),
-        // use the HeaderHash from the first
-        maybe_parent_address: createGoalWithNoEdgeResult.goal.address,
-      }
-      const createGoalWithEdgeResult = await callAlice(
-        'create_goal_with_edge',
-        createGoalWithEdgeInput
-      )
-      tape.deepEqual(
-        createGoalWithEdgeResult.goal.entry,
-        createGoalWithEdgeInput.entry
-      )
-      // expect maybe_edge to be an EdgeWireEntry
-      tape.ok(createGoalWithEdgeResult.maybe_edge)
-
-      // ARCHIVE GOAL FULLY
-      // first of all, we should create one
-      // of each type of entry associated with a goal...
-      // goal_vote, goal_comment, goal_member, entry_point, and edge (which is already created)
-      const { address: goalVoteAddress } = await callAlice('create_goal_vote', {
-        goal_address: createGoalWithEdgeResult.goal.address,
-        urgency: 0.5,
-        importance: 1,
-        impact: 1,
-        effort: 1,
-        unix_timestamp: Date.now(),
-        agent_address: agentAddress,
-      })
-      const { address: goalMemberAddress } = await callAlice(
-        'create_goal_member',
-        {
-          unix_timestamp: Date.now(),
-          goal_address: createGoalWithEdgeResult.goal.address,
-          user_edit_hash: agentAddress,
-          agent_address: agentAddress,
-        }
-      )
-      const { address: goalCommentAddress } = await callAlice(
-        'create_goal_comment',
-        {
-          content: 'Test Goal Comment',
-          goal_address: createGoalWithEdgeResult.goal.address,
-          unix_timestamp: Date.now(),
-          agent_address: agentAddress,
-        }
-      )
-      const { address: entryPointAddress } = await callAlice(
-        'create_entry_point',
-        {
-          color: '#123444',
-          goal_address: createGoalWithEdgeResult.goal.address,
+      await runPlainCreateFetchTest({
+        entryType: 'trx',
+        createEntry: {
+          from: aa,
+          to: aa, // TODO: change this to someone elses address
           created_at: Date.now(),
-          creator_address: agentAddress,
-        }
-      )
-      const archiveGoalFullyResult = await callAlice(
-        'archive_goal_fully',
-        createGoalWithEdgeResult.goal.address
-      )
-      // should include EVERYTHING that's been archived
-      tape.deepEqual(archiveGoalFullyResult, {
-        address: createGoalWithEdgeResult.goal.address,
-        archived_edges: [createGoalWithEdgeResult.maybe_edge.address],
-        archived_goal_votes: [goalVoteAddress],
-        archived_goal_comments: [goalCommentAddress],
-        archived_goal_members: [goalMemberAddress],
-        archived_entry_points: [entryPointAddress],
-      })
-    }
-  )
-
-  orchestrator.registerScenario(
-    'edge api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-
-      // destructure
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      const goal1 = newGoal(agentAddress, 'Test Goal 1')
-      const goal2 = newGoal(agentAddress, 'Test Goal 2')
-      const createGoal1Result = await callAlice('create_goal', goal1)
-      const createGoal2Result = await callAlice('create_goal', goal2)
-
-      await runPlainCrudTest({
-        entryType: 'edge',
-        createEntry: {
-          parent_address: createGoal1Result.address,
-          child_address: createGoal2Result.address,
-        },
-        updateEntry: {
-          // switch the parent and child
-          parent_address: createGoal2Result.address,
-          child_address: createGoal1Result.address,
-        },
-        baseEntry: {
-          randomizer: 321, // anything here
-        },
-        callAlice,
-        tape,
-      })
-    }
-  )
-
-  orchestrator.registerScenario(
-    'entry_point api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-
-      // destructure
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      const goal1 = newGoal(agentAddress, 'Test Goal 1')
-      const createGoal1Result = await callAlice('create_goal', goal1)
-
-      await runPlainCrudTest({
-        entryType: 'entry_point',
-        createEntry: {
-          color: '#BBB222',
-        },
-        updateEntry: {
-          color: '#AAA111',
-        },
-        baseEntry: {
-          goal_address: createGoal1Result.address,
-          created_at: Date.now(),
-          creator_address: agentAddress,
-        },
-        callAlice,
-        tape,
-      })
-    }
-  )
-
-  orchestrator.registerScenario(
-    'goal_comment api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-
-      // destructure
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      const goal1 = newGoal(agentAddress, 'Test Goal 1')
-      const createGoal1Result = await callAlice('create_goal', goal1)
-
-      await runPlainCrudTest({
-        entryType: 'goal_comment',
-        createEntry: {
-          content: 'Comment Create',
-        },
-        updateEntry: {
-          content: 'Comment Update',
-        },
-        baseEntry: {
-          goal_address: createGoal1Result.address,
-          unix_timestamp: Date.now(),
-          agent_address: agentAddress,
-        },
-        callAlice,
-        tape,
-      })
-    }
-  )
-
-  orchestrator.registerScenario(
-    'goal_member api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      const goal1 = newGoal(agentAddress, 'Test Goal 1')
-      const createGoal1Result = await callAlice('create_goal', goal1)
-
-      await runPlainCrudTest({
-        entryType: 'goal_member',
-        createEntry: {
-          unix_timestamp: 4321,
-        },
-        updateEntry: {
-          unix_timestamp: 1234,
-        },
-        baseEntry: {
-          goal_address: createGoal1Result.address,
-          user_edit_hash: agentAddress,
-          agent_address: agentAddress,
-        },
-        callAlice,
-        tape,
-      })
-    }
-  )
-
-  orchestrator.registerScenario(
-    'goal_vote api',
-    async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
-
-      const goal1 = newGoal(agentAddress, 'Test Goal 1')
-      const createGoal1Result = await callAlice('create_goal', goal1)
-
-      await runPlainCrudTest({
-        entryType: 'goal_vote',
-        createEntry: {
-          urgency: 0.5,
-        },
-        updateEntry: {
-          urgency: 0.8,
-        },
-        baseEntry: {
-          goal_address: createGoal1Result.address,
-          importance: 1,
-          impact: 1,
-          effort: 1,
-          unix_timestamp: Date.now(),
-          agent_address: agentAddress,
+          amount: 100,
         },
         callAlice,
         tape,
@@ -395,33 +75,29 @@ module.exports = (orchestrator: Orchestrator<null>) => {
   orchestrator.registerScenario(
     'project_meta api',
     async (scenario: ScenarioApi, tape) => {
-      const { callAlice } = await setup(scenario)
-      const [{ address: agentAddress }] = await callAlice('fetch_members')
+      const { callAlice, agentAddress } = await setup(scenario)
 
-      await runPlainCrudTest({
-        entryType: 'project_meta',
-        createEntry: {
-          name: 'Initial Name',
-        },
-        updateEntry: {
-          name: 'Rename',
-        },
-        baseEntry: {
-          creator_address: agentAddress,
-          created_at: Date.now(),
-          image: '',
-          passphrase: 'pinky-stomp-tuffle-waffle',
-        },
-        callAlice,
-        tape,
-      })
+      const { Codec } = await import('@holo-host/cryptolib')
+      const aa = Codec.AgentId.encode(agentAddress)
 
-      // at this point, the initial one should have been archived
       try {
         await callAlice('fetch_project_meta')
       } catch (e) {
         tape.equal(true, e.data.data.includes('no project meta exists'))
       }
+
+      const entryType = 'project_meta'
+      // CREATE
+      const entry = {
+        creator_address: aa,
+        created_at: Date.now(),
+        passphrase: 'pinky-stomp-tuffle-waffle',
+      }
+      const createResult = await callAlice(`create_${entryType}`, entry)
+      tape.deepEqual(createResult.entry, entry)
+      // READ
+      const fetchResult = await callAlice(`fetch_${entryType}`, null)
+      tape.deepEqual(fetchResult, createResult)
     }
   )
 }

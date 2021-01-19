@@ -19,10 +19,8 @@ module.exports = (orchestrator) => {
     )
 
     const profile = {
-      first_name: 'c',
-      last_name: 't',
+      created_at: Date.now(),
       handle: 'ct',
-      status: 'Online',
       avatar_url: 'test',
       address: agent_address,
     }
@@ -41,11 +39,9 @@ module.exports = (orchestrator) => {
 
     // UPDATE WHOAMI
     const profile2 = {
-      first_name: 'c',
-      last_name: 't',
+      created_at: Date.now(),
       handle: 'ct',
-      status: 'Offline',
-      avatar_url: 'test',
+      avatar_url: 'test2',
       address: agent_address,
     }
     const update_whoami = await profilesCell.call(
@@ -67,16 +63,14 @@ module.exports = (orchestrator) => {
     )
     t.deepEqual(whoami2.entry, {
       ...profile2,
-      status: 'Offline',
+      avatar_url: 'test2',
     })
 
     // UPDATE WHOAMI Again
     const profile3 = {
-      first_name: 'c',
-      last_name: 't',
+      created_at: Date.now(),
       handle: 'ct',
-      status: 'Away',
-      avatar_url: 'test',
+      avatar_url: 'testhi',
       address: agent_address,
     }
     await profilesCell.call(
